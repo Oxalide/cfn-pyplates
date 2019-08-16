@@ -21,7 +21,8 @@ import warnings
 from collections import OrderedDict
 
 from cfn_pyplates import exceptions
-import functions
+from . import functions
+from io import IOBase
 
 aws_template_format_version = '2010-09-09'
 
@@ -82,10 +83,10 @@ class JSONableDict(OrderedDict):
         # Indenting to keep things readable
         # Trailing whitespace after commas removed
         # (The space after colons is cool, though. He can stay.)
-        return unicode(self.json)
+        return str(self.json)
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
     def __setattr__(self, name, value):
         # This makes it simple to bind child dictionaries to an
@@ -578,7 +579,7 @@ def ec2_tags(tags):
 
     """
     tags_list = list()
-    for key, value in tags.iteritems():
+    for key, value in list(tags.items()):
         tags_list.append({'Key': key, 'Value': value})
 
     return tags_list
@@ -599,14 +600,15 @@ def generate_pyplate(pyplate, options=None):
 
     """
     try:
-        if not isinstance(pyplate, file):
+        if not isinstance(pyplate, IOBase):
+            print("Open file directly")
             pyplate = open(pyplate)
         pyplate = _load_pyplate(pyplate, options)
         cft = _find_cloudformationtemplate(pyplate)
-        output = unicode(cft)
+        output = str(cft)
     except Exception:
-        print 'Error processing the pyplate:'
-        print traceback.format_exc()
+        print('Error processing the pyplate:')
+        print((traceback.format_exc()))
         return None
 
     return output
@@ -624,7 +626,7 @@ def _load_pyplate(pyplate, options_mapping=None):
         exec_namespace[entry] = getattr(functions, entry)
 
     # Do the needful.
-    exec pyplate in exec_namespace
+    exec((pyplate), exec_namespace)
     return exec_namespace
 
 
@@ -635,7 +637,7 @@ def _find_cloudformationtemplate(pyplate):
     CloudFormationTemplate it finds.
 
     """
-    for key, value in pyplate.iteritems():
+    for key, value in list(pyplate.items()):
         if isinstance(value, CloudFormationTemplate):
             return value
 
