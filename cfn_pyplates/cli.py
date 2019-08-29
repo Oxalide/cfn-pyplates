@@ -105,6 +105,7 @@ WARNING!
         print(output)
     else:
         args['<outfile>'].write(output)
+        args['<outfile>'].close()
 
     # Explicitly return a posixy "EVERYTHING IS OKAY" 0
     return 0

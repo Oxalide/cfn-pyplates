@@ -86,7 +86,7 @@ class JSONableDict(OrderedDict):
         return str(self.json)
 
     def __str__(self):
-        return str(self).encode('utf-8')
+        return self.json
 
     def __setattr__(self, name, value):
         # This makes it simple to bind child dictionaries to an
@@ -601,7 +601,6 @@ def generate_pyplate(pyplate, options=None):
     """
     try:
         if not isinstance(pyplate, IOBase):
-            print("Open file directly")
             pyplate = open(pyplate)
         pyplate = _load_pyplate(pyplate, options)
         cft = _find_cloudformationtemplate(pyplate)
@@ -626,7 +625,7 @@ def _load_pyplate(pyplate, options_mapping=None):
         exec_namespace[entry] = getattr(functions, entry)
 
     # Do the needful.
-    exec((pyplate), exec_namespace)
+    exec((pyplate.read()), exec_namespace)
     return exec_namespace
 
 
